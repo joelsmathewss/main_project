@@ -33,7 +33,7 @@ Delivers illustrated, plain-language explanations to help patients understand th
 
 ---
 
-## 👥 Team
+## 👥 Team.
 - **Abhishek Biju**  
 - **Alina Pinheiro**  
 - **Joel S Mathews**  
