@@ -3,7 +3,7 @@ import { Sparkle, Mail, Phone, MapPin, Linkedin, Twitter, Facebook } from "lucid
 export default function Footer() {
   return (
     <footer id="contact" className="bg-gray-800 text-gray-300 py-12 px-4 sm:px-8 lg:px-16">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Logo and Description */}
         <div className="space-y-4">
           <div className="flex items-center space-x-2 text-white">
@@ -18,26 +18,6 @@ export default function Footer() {
             <a href="#" aria-label="Twitter" className="hover:text-teal-400 transition-colors"><Twitter size={24} /></a>
             <a href="#" aria-label="Facebook" className="hover:text-teal-400 transition-colors"><Facebook size={24} /></a>
           </div>
-        </div>
-
-        {/* Products Links */}
-        <div>
-          <h4 className="text-lg font-bold text-white mb-2">Products</h4>
-          <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-teal-400 transition-colors">Platform</a></li>
-            <li><a href="#" className="hover:text-teal-400 transition-colors">AI Features</a></li>
-            <li><a href="#" className="hover:text-teal-400 transition-colors">Integrations</a></li>
-          </ul>
-        </div>
-
-        {/* Support Links */}
-        <div>
-          <h4 className="text-lg font-bold text-white mb-2">Support</h4>
-          <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-teal-400 transition-colors">Help Center</a></li>
-            <li><a href="#" className="hover:text-teal-400 transition-colors">API Docs</a></li>
-            <li><a href="#" className="hover:text-teal-400 transition-colors">Community</a></li>
-          </ul>
         </div>
 
         {/* Contact Info */}
