@@ -1,7 +1,11 @@
+// src/components/Login.jsx
 import { useState } from "react";
+// You might want to import useNavigate to close the modal (go back to home)
+import { useNavigate } from "react-router-dom"; 
 
 export default function Login() {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -13,9 +17,30 @@ export default function Login() {
     // TODO: Hook into backend later
   };
 
+  // Function to close modal when clicking outside
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      navigate("/");
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 to-teal-500 px-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    // Changed: Fixed position, z-index, translucent backdrop
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 pt-20"
+    >
+      {/* Changed: animate-fade-in-up added for smooth entry */}
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in-up relative">
+        
+        {/* Optional: Close Button */}
+        <button 
+          onClick={() => navigate("/")}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+
         <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">
           Login to Your Account
         </h2>

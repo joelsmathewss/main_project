@@ -1,7 +1,31 @@
+// src/components/Signup.jsx
+import { useNavigate } from "react-router-dom";
+
 export default function Signup() {
+  const navigate = useNavigate();
+
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      navigate("/");
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-teal-400 flex items-center justify-center pt-24 pb-12 px-4">
-      <div className="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
+    // Changed: Fixed position, z-index, translucent backdrop
+    <div 
+      onClick={handleBackdropClick}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 pt-20"
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-fade-in-up relative">
+        
+        {/* Close Button */}
+        <button 
+          onClick={() => navigate("/")}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
           Create Your Account
         </h2>
@@ -49,34 +73,6 @@ export default function Signup() {
               placeholder="Enter your email"
             />
           </div>
-
-          {/* AI Mode
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">
-              Select AI Mode
-            </label>
-            <div className="flex items-center space-x-6">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="aiMode"
-                  value="professional"
-                  defaultChecked
-                  className="text-teal-500 focus:ring-teal-500"
-                />
-                <span className="ml-2">Professional</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="aiMode"
-                  value="coach"
-                  className="text-teal-500 focus:ring-teal-500"
-                />
-                <span className="ml-2">Coach</span>
-              </label>
-            </div>
-          </div> */}
 
           {/* Password */}
           <div>

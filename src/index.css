@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Enable smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Custom Animations */
 @layer utilities {
   .animate-fade-in-up {

@@ -18,12 +18,12 @@ export default function HeroSection() {
           >
             Get Started <ArrowRight className="inline-block ml-2" size={20} />
           </Link>
-          <Link
-            to="/login"
+          <a
+            href="#features"
             className="px-8 py-3 rounded-full text-white font-semibold border-2 border-white hover:bg-white hover:text-teal-600 transition-colors duration-300"
           >
             Learn More
-          </Link>
+          </a>
         </div>
       </div>
     </section>

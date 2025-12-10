@@ -4,7 +4,6 @@ export default function Footer() {
   return (
     <footer id="contact" className="bg-gray-800 text-gray-300 py-12 px-4 sm:px-8 lg:px-16">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Logo and Description */}
         <div className="space-y-4">
           <div className="flex items-center space-x-2 text-white">
             <Sparkle className="w-8 h-8 text-teal-500" />

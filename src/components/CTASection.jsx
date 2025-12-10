@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 export default function CTASection() {
   return (
     <section className="relative py-20 px-4 sm:px-8 lg:px-16 overflow-hidden bg-gray-900 text-white">
-      {/* Background Graphic */}
       <div className="absolute inset-0 opacity-20">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
           <defs>

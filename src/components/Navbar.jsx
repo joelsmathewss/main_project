@@ -7,20 +7,15 @@ export default function Navbar() {
 
   return (
     <nav className="fixed w-full z-50 top-0 bg-white bg-opacity-90 backdrop-blur-sm shadow-sm py-4 px-4 sm:px-8 lg:px-16 flex items-center justify-between">
-      {/* Logo */}
       <Link to="/" className="flex items-center space-x-2">
         <Sparkle className="text-teal-500 w-8 h-8" />
         <span className="font-bold text-2xl text-gray-900">LucidCare</span>
       </Link>
-
-      {/* Desktop Menu */}
       <div className="hidden lg:flex items-center space-x-8">
         <a href="#features" className="hover:text-teal-600 transition">Features</a>
         <a href="#pricing" className="hover:text-teal-600 transition">How it works?</a>
         <a href="#contact" className="hover:text-teal-600 transition">Contact</a>
       </div>
-
-      {/* CTA Buttons */}
       <div className="hidden lg:flex items-center space-x-4">
         <Link
           to="/login"
@@ -35,15 +30,11 @@ export default function Navbar() {
           Sign Up
         </Link>
       </div>
-
-      {/* Mobile Toggle */}
       <div className="lg:hidden">
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
-
-      {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center space-y-8 lg:hidden">
           <a onClick={() => setIsMobileMenuOpen(false)} href="#features" className="text-2xl font-semibold">Features</a>
