@@ -13,7 +13,8 @@ export default function Navbar() {
       </Link>
       <div className="hidden lg:flex items-center space-x-8">
         <a href="#features" className="hover:text-teal-600 transition">Features</a>
-        <a href="#pricing" className="hover:text-teal-600 transition">How it works?</a>
+        {/* UPDATED: Changed href from "#pricing" to "#how-it-works" */}
+        <a href="#how-it-works" className="hover:text-teal-600 transition">How it works?</a>
         <a href="#contact" className="hover:text-teal-600 transition">Contact</a>
       </div>
       <div className="hidden lg:flex items-center space-x-4">
@@ -38,7 +39,8 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center space-y-8 lg:hidden">
           <a onClick={() => setIsMobileMenuOpen(false)} href="#features" className="text-2xl font-semibold">Features</a>
-          <a onClick={() => setIsMobileMenuOpen(false)} href="#pricing" className="text-2xl font-semibold">Pricing</a>
+          {/* UPDATED: Changed href from "#pricing" to "#how-it-works" and text from "Pricing" */}
+          <a onClick={() => setIsMobileMenuOpen(false)} href="#how-it-works" className="text-2xl font-semibold">How it works?</a>
           <a onClick={() => setIsMobileMenuOpen(false)} href="#contact" className="text-2xl font-semibold">Contact</a>
           <div className="flex flex-col space-y-4 pt-8 w-64">
             <Link
