@@ -11,10 +11,9 @@ export default function Signup() {
   };
 
   return (
-    // Changed: Fixed position, z-index, translucent backdrop
-    <div 
+  <div 
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 pt-20"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-fade-in-up relative">
         
