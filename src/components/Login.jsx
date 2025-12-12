@@ -1,7 +1,7 @@
 // src/components/Login.jsx
 import { useState } from "react";
 // You might want to import useNavigate to close the modal (go back to home)
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -11,10 +11,28 @@ export default function Login() {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", credentials);
-    // TODO: Hook into backend later
+    try {
+      const response = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials)
+      });
+
+      const parseRes = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", parseRes.token);
+        console.log("Login Successful");
+        navigate("/");
+      } else {
+        console.error(parseRes);
+        alert(parseRes || "Login failed");
+      }
+    } catch (err) {
+      console.error(err.message);
+    }
   };
 
   // Function to close modal when clicking outside
@@ -26,15 +44,15 @@ export default function Login() {
 
   return (
     // Changed: Fixed position, z-index, translucent backdrop
-    <div 
+    <div
       onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 pt-20"
     >
       {/* Changed: animate-fade-in-up added for smooth entry */}
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in-up relative">
-        
+
         {/* Optional: Close Button */}
-        <button 
+        <button
           onClick={() => navigate("/")}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
         >

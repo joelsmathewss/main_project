@@ -1,0 +1,8 @@
+Flask
+python-dotenv
+flask-cors
+PyJWT
+bcrypt
+supabase
+httpx>=0.24.0
+websockets>=13.0
