@@ -1,5 +1,5 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom"; // Import Outlet
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
 import FeaturesSection from "./components/FeaturesSection";
@@ -9,19 +9,29 @@ import Footer from "./components/Footer";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 import ContactUs from "./components/ContactUs";
+import ReportSummaryPage from "./pages/ReportSummaryPage";
 
-// Update Home to include <Outlet />
-// This allows nested pages (Login/Signup) to render on top of it
+// Layout for public pages (includes Navbar)
+function PublicLayout() {
+  return (
+    <div className="bg-white text-gray-800 font-inter min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// Home Page Component
 function Home() {
   return (
-    <div className="relative"> {/* Make relative for positioning context if needed */}
+    <div className="relative">
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
       <CTASection />
       <Footer />
-      
-      {/* The Outlet renders the child route (Login/Signup) if one is active */}
       <Outlet /> 
     </div>
   );
@@ -30,21 +40,19 @@ function Home() {
 export default function App() {
   return (
     <Router>
-      <div className="bg-white text-gray-800 font-inter">
-        <Navbar />
-        <main>
-          <Routes>
-            {/* Nest login and signup under the "/" route */}
-            <Route path="/" element={<Home />}>
-              <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
-            </Route>
-            
-            {/* Contact remains a separate page */}
-            <Route path="/contact" element={<ContactUs />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        {/* Public Routes (With Navbar) */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />}>
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+          </Route>
+          <Route path="/contact" element={<ContactUs />} />
+        </Route>
+
+        {/* Private/Dashboard Route (NO Global Navbar) */}
+        <Route path="/dashboard" element={<ReportSummaryPage />} />
+      </Routes>
     </Router>
   );
 }
