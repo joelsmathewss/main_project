@@ -7,6 +7,8 @@ import jwt
 import datetime
 from functools import wraps
 from supabase import create_client, Client
+from werkzeug.utils import secure_filename
+from models.model import MedicalDiagnosticSystem
 
 load_dotenv()
 
@@ -20,7 +22,19 @@ key: str = os.environ.get("SUPABASE_KEY")
 if not url or not key:
     print("Error: SUPABASE_URL or SUPABASE_KEY missing from .env")
 
-supabase: Client = create_client(url, key)
+try:
+    supabase: Client = create_client(url, key)
+except Exception as e:
+    print(f"Supabase Connection Error: {e}")
+
+# Initialize AI System
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY") 
+diagnostic_system = MedicalDiagnosticSystem(GROQ_API_KEY)
+
+# Upload Config
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # JWT Middleware
 def token_required(f):
@@ -32,8 +46,6 @@ def token_required(f):
             return jsonify({'message': 'Token is missing!'}), 403
 
         try:
-            # Verify using our custom secret OR Supabase's JWT secret if you switch to their auth later
-            # For now keeping our custom JWT logic as per previous implementation
             data = jwt.decode(token, os.getenv('jwtSecret'), algorithms=["HS256"])
         except Exception as e:
             return jsonify({'message': 'Token is invalid!'}), 403
@@ -41,6 +53,8 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+# --- AUTH ROUTES ---
 
 @app.route('/auth/register', methods=['POST'])
 def register():
@@ -52,17 +66,14 @@ def register():
     sex = data.get('sex')
 
     try:
-        # Check if user exists using Supabase Client
         existing_user = supabase.table('users').select("*").eq('user_email', email).execute()
         
         if existing_user.data and len(existing_user.data) > 0:
             return jsonify("User already exists"), 401
 
-        # Hash password
         salt = bcrypt.gensalt()
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-        # Insert user
         new_user_data = {
             "user_fullname": name,
             "user_email": email,
@@ -78,7 +89,6 @@ def register():
              
         new_user_id = insert_response.data[0]['user_id']
 
-        # Generate Token
         token = jwt.encode({
             'user': {'id': new_user_id},
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
@@ -97,7 +107,6 @@ def login():
     password = data.get('password')
 
     try:
-        # Fetch user
         user_response = supabase.table('users').select("*").eq('user_email', email).execute()
         
         if not user_response.data or len(user_response.data) == 0:
@@ -105,9 +114,7 @@ def login():
             
         user = user_response.data[0]
 
-        # Verify password
         if bcrypt.checkpw(password.encode('utf-8'), user['user_password'].encode('utf-8')):
-            # Generate Token
             token = jwt.encode({
                 'user': {'id': user['user_id']},
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
@@ -125,6 +132,57 @@ def login():
 @token_required
 def is_verify():
     return jsonify(True)
+
+# --- AI ROUTES ---
+
+@app.route('/analyze', methods=['POST'])
+def analyze_medical_report():
+    if 'pdf' not in request.files and 'image' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    pdf_file = request.files.get('pdf')
+    image_file = request.files.get('image')
+
+    pdf_text = None
+    image_findings = None
+    
+    try:
+        # Process PDF if uploaded
+        if pdf_file and pdf_file.filename != '':
+            filename = secure_filename(pdf_file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            pdf_file.save(filepath)
+            
+            pdf_text = diagnostic_system.extract_pdf_text(filepath)
+            
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+        # Process Image if uploaded
+        if image_file and image_file.filename != '':
+            filename = secure_filename(image_file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image_file.save(filepath)
+            
+            image_findings = diagnostic_system.analyze_image(filepath)
+            
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+        # Generate Summary
+        if not pdf_text and not image_findings:
+             return jsonify({'error': 'No valid data extracted from files'}), 400
+
+        summary = diagnostic_system.generate_summary(pdf_text, image_findings)
+
+        return jsonify({
+            'summary': summary,
+            'details': image_findings
+        })
+
+    except Exception as e:
+        print(f"Analysis Error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

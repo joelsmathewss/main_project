@@ -6,3 +6,10 @@ bcrypt
 supabase
 httpx>=0.24.0
 websockets>=13.0
+ultralytics
+tensorflow
+groq
+PyPDF2
+opencv-python
+numpy
+Pillow

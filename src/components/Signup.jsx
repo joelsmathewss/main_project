@@ -21,7 +21,6 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Validate inputs if needed
       if (sex === "Select") {
         alert("Please select a valid sex");
         return;
@@ -38,7 +37,8 @@ export default function Signup() {
 
       if (response.ok) {
         localStorage.setItem("token", parseRes.token);
-        navigate("/");
+        // UPDATED: Redirect to dashboard
+        navigate("/dashboard");
       } else {
         alert(parseRes || "Signup failed");
       }
@@ -60,7 +60,6 @@ export default function Signup() {
     >
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-fade-in-up relative">
 
-        {/* Close Button */}
         <button
           onClick={() => navigate("/")}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -73,7 +72,6 @@ export default function Signup() {
         </h2>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Full Name */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">
               Full Name
@@ -89,7 +87,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Age */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Age</label>
             <input
@@ -103,7 +100,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Sex */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Sex</label>
             <select
@@ -119,7 +115,6 @@ export default function Signup() {
             </select>
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Email</label>
             <input
@@ -133,7 +128,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">
               Password
@@ -149,7 +143,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-2 rounded-lg font-semibold hover:opacity-90 transition"

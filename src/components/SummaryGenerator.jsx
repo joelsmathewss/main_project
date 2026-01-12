@@ -1,13 +1,16 @@
-export default function SummaryGenerator({ file, language, onGenerate, loading }) {
+export default function SummaryGenerator({ onGenerate, loading }) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-      <button
-        onClick={onGenerate}
-        disabled={loading}
-        className="w-full bg-gradient-to-r from-blue-500 to-teal-500 text-white py-2 rounded-lg font-semibold hover:opacity-90 transition"
-      >
-        {loading ? "Generating..." : "Generate Summary"}
-      </button>
-    </div>
+    <button
+      onClick={onGenerate}
+      disabled={loading}
+      className={`
+        w-full rounded-lg py-3 text-sm font-semibold text-white
+        bg-gradient-to-r from-blue-500 to-teal-500
+        transition
+        ${loading ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"}
+      `}
+    >
+      {loading ? "Generating…" : "Generate Summary"}
+    </button>
   );
 }
