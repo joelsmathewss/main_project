@@ -42,8 +42,7 @@ export default function ReportSummaryPage() {
     const formData = new FormData();
     if (pdfFile) formData.append("pdf", pdfFile);
     if (imageFile) formData.append("image", imageFile);
-    // You could also pass language if your backend supports translation
-    // formData.append("language", language);
+    formData.append("language", language);
 
     try {
       const response = await fetch("http://localhost:5000/analyze", {

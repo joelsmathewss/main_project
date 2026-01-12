@@ -118,7 +118,7 @@ class MedicalDiagnosticSystem:
                             "classifier_confidence": round(class_score * 100, 2),
                             "detector_object_type": yolo_label,
                             "detector_confidence": round(yolo_conf * 100, 2),
-                            "box": [x1, y1, x2, y2]
+                            "bbox": [x1, y1, x2, y2]
                         })
 
             return json_report
@@ -137,24 +137,57 @@ class MedicalDiagnosticSystem:
             print(f"❌ Error reading PDF: {e}")
             return None
 
-    def generate_summary(self, pdf_text, json_data):
+    def generate_summary(self, pdf_text, json_data, target_language="English"):
         try:
             json_string = json.dumps(json_data, indent=2) if json_data else "No X-ray analysis provided."
+            
+            # --- LANGUAGE PROMPT LOGIC ---
+            if target_language == "ml": # 'ml' code for Malayalam from frontend
+                lang_instruction = """
+                OUTPUT LANGUAGE: MALAYALAM (മലയാളം).
+                CRITICAL INSTRUCTION: DO NOT SHORTEN THE REPORT.
+                - Provide a detailed and comprehensive explanation.
+                - Explain why a value is dangerous (e.g., "ഓക്സിജൻ 88% ആയത് അപകടകരമാണ്, കാരണം...").
+                - Use simple Malayalam words, but keep the explanation long and clear.
+                - Translate every single finding from the English logic.
+                """
+            else:
+                lang_instruction = """
+                OUTPUT LANGUAGE: ENGLISH.
+                - Provide a detailed layman explanation.
+                - DEFINITIONS: Explain every medical term (e.g., "SpO2 (Oxygen Level)").
+                - Connect all dots between Vitals and X-Ray.
+                """
 
-            system_instruction = """
-            You are an expert medical communicator. Your task is to explain a patient's medical status by combining:
-            1. An **AI-generated X-Ray Analysis**.
-            2. A standard **Medical Report**.
+            system_instruction = f"""
+            You are an expert doctor explaining a detailed diagnosis to a patient.
 
-            STRICT RULES:
-            1. **Simplify Everything**: Translate jargon (e.g., "consolidation") into plain English.
-            2. **Integrate Findings**: Start with AI findings, then summarize the report. Connect them if possible.
-            3. **Tone**: Empathetic, calm, and clear.
-            4. **Disclaimer**: Start with a bold warning: "**Disclaimer: This is an AI summary, not a doctor's advice.**"
+            STRICT FORMATTING RULES (Clean Text Only):
+            1. NO Markdown (No #, **, -, etc).
+            2. NO Emojis.
+            3. NO Bullet points.
+            4. Use simple "Title: Content" structure.
+
+            REQUIRED SECTIONS:
+
+            Vitals and Lab Data
+            [Medical Term] ([Simple Explanation]): [Value] -> [Status/Risk]
+            Example: SpO2 (Blood Oxygen Level): 88% -> Low (Hypoxia)
+            (List each item on a new line)
+
+            X-Ray Findings
+            Condition: [Name]
+            Location: [Location]
+            Meaning: [Explanation]
+
+            Integrated Summary
+            [Write a detailed paragraph. State the main disease. Explain the evidence from X-ray and Lab data. Explain the link between them. Explain next steps.]
+
+            {lang_instruction}
             """
 
             user_message = f"""
-            Here is the patient data:
+            Here is the raw data:
 
             --- SOURCE 1: AI X-RAY ANALYSIS ---
             {json_string}
@@ -162,7 +195,7 @@ class MedicalDiagnosticSystem:
             --- SOURCE 2: MEDICAL REPORT TEXT ---
             {pdf_text}
 
-            Please provide the patient summary now.
+            Please generate the Detailed Integrated Summary in {target_language}.
             """
 
             completion = self.groq_client.chat.completions.create(
@@ -179,28 +212,11 @@ class MedicalDiagnosticSystem:
         except Exception as e:
             return f"❌ Groq API Error: {e}"
 
-# Example Usage Block (only runs if executed directly)
 if __name__ == "__main__":
-    # Create the system
-    # NOTE: You should set GROQ_API_KEY in your environment, or pass it here
+    # Local Test
     API_KEY = os.environ.get("GROQ_API_KEY")
-    
-    system = MedicalDiagnosticSystem(API_KEY)
-    
-    # Test paths (Change these to run a test locally)
-    test_img = "test_xray.jpg"
-    test_pdf = "test_report.pdf"
-
-    if os.path.exists(test_img):
-        print("Analyzing Image...")
-        report = system.analyze_image(test_img)
-        print(json.dumps(report, indent=2))
-        
-        if os.path.exists(test_pdf):
-            print("Reading PDF...")
-            text = system.extract_pdf_text(test_pdf)
-            print("Generating Summary...")
-            summary = system.generate_summary(text, report)
-            print("\nSummary:\n", summary)
+    if API_KEY:
+        system = MedicalDiagnosticSystem(API_KEY)
+        print("Medical Diagnostic System Initialized.")
     else:
-        print("Test image not found. Create 'test_xray.jpg' to test.")
+        print("Please set GROQ_API_KEY in environment variables.")

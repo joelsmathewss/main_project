@@ -173,7 +173,9 @@ def analyze_medical_report():
         if not pdf_text and not image_findings:
              return jsonify({'error': 'No valid data extracted from files'}), 400
 
-        summary = diagnostic_system.generate_summary(pdf_text, image_findings)
+        # Get language from request (default to English)
+        language = request.form.get('language', 'English')
+        summary = diagnostic_system.generate_summary(pdf_text, image_findings, language)
 
         return jsonify({
             'summary': summary,
