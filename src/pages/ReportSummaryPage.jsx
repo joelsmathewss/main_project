@@ -47,6 +47,9 @@ export default function ReportSummaryPage() {
     try {
       const response = await fetch("http://localhost:5000/analyze", {
         method: "POST",
+        headers: {
+          token: localStorage.getItem("token"),
+        },
         body: formData,
       });
 

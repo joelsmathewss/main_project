@@ -48,9 +48,9 @@ def token_required(f):
         try:
             data = jwt.decode(token, os.getenv('jwtSecret'), algorithms=["HS256"])
         except Exception as e:
-            return jsonify({'message': 'Token is invalid!'}), 403
+            return jsonify({'message': 'Token is invalid!', 'error': str(e)}), 403
 
-        return f(*args, **kwargs)
+        return f(data['user']['id'], *args, **kwargs)
 
     return decorated
 
@@ -130,13 +130,14 @@ def login():
 
 @app.route('/auth/is-verify', methods=['GET'])
 @token_required
-def is_verify():
+def is_verify(current_user):
     return jsonify(True)
 
 # --- AI ROUTES ---
 
 @app.route('/analyze', methods=['POST'])
-def analyze_medical_report():
+@token_required
+def analyze_medical_report(current_user):
     if 'pdf' not in request.files and 'image' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
@@ -176,6 +177,18 @@ def analyze_medical_report():
         # Get language from request (default to English)
         language = request.form.get('language', 'English')
         summary = diagnostic_system.generate_summary(pdf_text, image_findings, language)
+
+        # Store summary in Supabase
+        try:
+            summary_data = {
+                "user_id": current_user,
+                "summary_text": summary,
+                "language": language
+            }
+            supabase.table('summaries').insert(summary_data).execute()
+        except Exception as e:
+            print(f"Error saving summary to Supabase: {e}")
+            # We continue even if saving fails, as the user still wants the result
 
         return jsonify({
             'summary': summary,
