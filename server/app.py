@@ -138,11 +138,10 @@ def is_verify(current_user):
 @app.route('/analyze', methods=['POST'])
 @token_required
 def analyze_medical_report(current_user):
-    if 'pdf' not in request.files and 'image' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    if 'pdf' not in request.files:
+        return jsonify({'error': 'No PDF file part'}), 400
     
     pdf_file = request.files.get('pdf')
-    image_file = request.files.get('image')
 
     pdf_text = None
     image_findings = None
@@ -156,19 +155,22 @@ def analyze_medical_report(current_user):
             
             pdf_text = diagnostic_system.extract_pdf_text(filepath)
             
+            # Extract Image from PDF
+            extracted_image_path = diagnostic_system.extract_images_from_pdf(filepath)
+
+            if extracted_image_path:
+                 extract_img_filename = os.path.basename(extracted_image_path)
+                 print(f"Extracted Image: {extract_img_filename}")
+                 image_findings = diagnostic_system.analyze_image(extracted_image_path)
+                 
+                 # Clean up extracted image
+                 if os.path.exists(extracted_image_path):
+                     os.remove(extracted_image_path)
+            
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-        # Process Image if uploaded
-        if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image_file.save(filepath)
-            
-            image_findings = diagnostic_system.analyze_image(filepath)
-            
-            if os.path.exists(filepath):
-                os.remove(filepath)
+
 
         # Generate Summary
         if not pdf_text and not image_findings:

@@ -19,7 +19,6 @@ import SummaryGenerator from "../components/SummaryGenerator";
 
 export default function ReportSummaryPage() {
   const [pdfFile, setPdfFile] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
 
   const [language, setLanguage] = useState("en");
   const [summary, setSummary] = useState("");
@@ -34,14 +33,13 @@ export default function ReportSummaryPage() {
   };
 
   const handleGenerate = async () => {
-    if (!pdfFile && !imageFile) {
-      return alert("Please upload at least one file (PDF or X-Ray).");
+    if (!pdfFile) {
+      return alert("Please upload a Medical Report (PDF).");
     }
     setLoading(true);
 
     const formData = new FormData();
     if (pdfFile) formData.append("pdf", pdfFile);
-    if (imageFile) formData.append("image", imageFile);
     formData.append("language", language);
 
     try {
@@ -118,20 +116,11 @@ export default function ReportSummaryPage() {
               </h2>
 
               <div className="space-y-8">
-                {/* PDF Uploader */}
                 <ReportUploader
-                  label="Upload Medical PDF"
+                  label="Upload Medical Report (PDF)"
                   accept=".pdf"
                   icon={Upload}
                   onFileSelect={setPdfFile}
-                />
-
-                {/* Image Uploader */}
-                <ReportUploader
-                  label="Upload X-Ray Image"
-                  accept=".jpg,.jpeg,.png"
-                  icon={ImageIcon}
-                  onFileSelect={setImageFile}
                 />
 
                 <LanguageSelector
@@ -182,7 +171,7 @@ export default function ReportSummaryPage() {
                       No Report Generated
                     </h3>
                     <p className="max-w-xs mx-auto text-sm text-gray-500 leading-relaxed">
-                      Upload a Medical Report (PDF) and/or X-Ray Image on the left to generate a summary.
+                      Upload a Medical Report (PDF) on the left to generate a summary.
                     </p>
                   </div>
                 )}
