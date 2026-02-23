@@ -51,30 +51,52 @@ class MedicalDiagnosticSystem:
                 # Load state dict
                 state_dict = torch.load(model_path, map_location=self.device)
                 
-                # Fix for classifier keys if they are wrapped in Sequential (classifier.0.weight -> classifier.weight)
-                new_state_dict = {}
-                for k, v in state_dict.items():
-                    if k.startswith('classifier.0.'):
-                        new_k = k.replace('classifier.0.', 'classifier.')
-                        new_state_dict[new_k] = v
-                    else:
-                        new_state_dict[k] = v
+                # Check for Sequential classifier structure (classifier.0, classifier.2, etc.)
+                is_sequential = any(k.startswith('classifier.0') for k in state_dict.keys())
                 
-                # Check if we need to adjust the classifier dimensions based on the loaded weights
-                if 'classifier.weight' in new_state_dict:
-                    weight_shape = new_state_dict['classifier.weight'].shape
-                    # weight_shape is [out_features, in_features]
-                    out_features = weight_shape[0]
-                    in_features = weight_shape[1]
-                    print(f"Detected model classifier: in={in_features}, out={out_features}")
+                if is_sequential:
+                    print("Detected Sequential classifier structure.")
+                    # Try to infer structure from keys
+                    # Expected: classifier.0 (Linear), classifier.1 (Activation/Dropout?), classifier.2 (Linear)
                     
-                    if in_features != num_ftrs:
-                        print(f"Warning: Expected input features {num_ftrs} but got {in_features}")
+                    # Get dimensions from weights
+                    if 'classifier.0.weight' in state_dict:
+                        w0 = state_dict['classifier.0.weight']
+                        in_ftrs_0 = w0.shape[1]
+                        out_ftrs_0 = w0.shape[0]
+                        print(f"Layer 0: Linear({in_ftrs_0}, {out_ftrs_0})")
                     
-                    # Re-initialize classifier with detected output size
-                    model.classifier = nn.Linear(in_features, out_features)
-                
-                model.load_state_dict(new_state_dict)
+                    if 'classifier.2.weight' in state_dict:
+                        w2 = state_dict['classifier.2.weight']
+                        in_ftrs_2 = w2.shape[1]
+                        out_ftrs_2 = w2.shape[0]
+                        print(f"Layer 2: Linear({in_ftrs_2}, {out_ftrs_2})")
+                        
+                        # Reconstruct Sequential
+                        # Assuming structure: Linear -> ReLU/Dropout -> Linear
+                        # We can try to just use the layers we have weights for.
+                        # However, we need to handle the intermediate layer (1). 
+                        # Usually it's ReLU or Dropout. DenseNet implementation usually just puts Linear.
+                        # But since keys are 0 and 2, 1 must exist.
+                        
+                        model.classifier = nn.Sequential(
+                            nn.Linear(in_ftrs_0, out_ftrs_0),
+                            nn.ReLU(), # Assuming ReLU for 1
+                            nn.Linear(in_ftrs_2, out_ftrs_2)
+                        )
+                        
+                        # If there is a Dropout at 1, loading state dict might not complain if it has no weights.
+                        # But if 1 was something with weights, we would see it.
+                        
+                else:
+                    # Standard single layer
+                    if 'classifier.weight' in state_dict:
+                        w = state_dict['classifier.weight']
+                        in_f = w.shape[1]
+                        out_f = w.shape[0]
+                        model.classifier = nn.Linear(in_f, out_f)
+
+                model.load_state_dict(state_dict)
                 
                 model = model.to(self.device)
                 model.eval()
