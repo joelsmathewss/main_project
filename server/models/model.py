@@ -375,3 +375,70 @@ class MedicalDiagnosticSystem:
 
         except Exception as e:
             return f"Groq API Error: {e}"
+
+    def generate_comparison(self, summary_older: str, summary_newer: str) -> dict:
+        """
+        Compares two medical summaries using Groq and returns a structured JSON analysis.
+        Returns a dict with keys: verdict, confidence, summary, highlights, recommendation.
+        """
+        if not self.groq_client:
+            return {"error": "Groq client not initialised. Check API Key."}
+
+        system_prompt = """
+You are an expert medical analyst. You will be given two medical report summaries: one older and one recent.
+Your job is to compare them and determine if the patient's health has IMPROVED, DETERIORATED, or is STABLE/NORMAL.
+
+Return ONLY valid JSON (no markdown, no code fences) in this exact structure:
+{
+  "verdict": "deteriorated" | "improved" | "normal",
+  "confidence": <integer 0-100>,
+  "summary": "<2-3 sentence plain English summary of the overall change>",
+  "highlights": [
+    {
+      "metric": "<metric name>",
+      "oldValue": "<value from older report>",
+      "newValue": "<value from newer report>",
+      "change": "deteriorated" | "improved" | "stable",
+      "note": "<one sentence explanation>"
+    }
+  ],
+  "recommendation": "<1-2 sentence clinical recommendation>"
+}
+
+Rules:
+- Extract up to 6 key metrics from the reports (e.g. specific lab values, findings, conditions).
+- If a metric cannot be compared, omit it from highlights.
+- Be concise. No markdown in any string value.
+- confidence reflects how certain you are based on evidence strength.
+"""
+
+        user_message = f"""
+--- OLDER REPORT ---
+{summary_older}
+
+--- RECENT REPORT ---
+{summary_newer}
+
+Analyse and return the JSON comparison.
+"""
+
+        try:
+            completion = self.groq_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                model="llama-3.3-70b-versatile",
+                temperature=0.2,
+            )
+            raw = completion.choices[0].message.content.strip()
+            # Strip any accidental markdown code fences
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            return json.loads(raw)
+        except json.JSONDecodeError as e:
+            return {"error": f"LLM returned invalid JSON: {e}", "raw": raw}
+        except Exception as e:
+            return {"error": f"Groq API Error: {e}"}

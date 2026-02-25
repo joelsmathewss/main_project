@@ -133,6 +133,92 @@ def login():
 def is_verify(current_user):
     return jsonify(True)
 
+# --- SUMMARY ROUTES ---
+
+@app.route('/summaries', methods=['GET'])
+@token_required
+def get_summaries(current_user):
+    """Return all summaries for the logged-in user, newest first."""
+    try:
+        response = (
+            supabase.table('summaries')
+            .select("summary_id, summary_text, language, created_at")
+            .eq('user_id', current_user)
+            .order('created_at', desc=True)
+            .execute()
+        )
+        return jsonify(response.data), 200
+    except Exception as e:
+        print(f"Get Summaries Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/summaries/<summary_id>', methods=['GET'])
+@token_required
+def get_summary(current_user, summary_id):
+    """Return a single summary (only if it belongs to the current user)."""
+    try:
+        response = (
+            supabase.table('summaries')
+            .select("summary_id, summary_text, language, created_at")
+            .eq('summary_id', summary_id)
+            .eq('user_id', current_user)
+            .single()
+            .execute()
+        )
+        if not response.data:
+            return jsonify({'error': 'Summary not found'}), 404
+        return jsonify(response.data), 200
+    except Exception as e:
+        print(f"Get Summary Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/compare', methods=['POST'])
+@token_required
+def compare_summaries(current_user):
+    """
+    Accepts a list of summary objects { id, fullText } from the frontend,
+    verifies ownership, sorts by creation date, and runs a Groq comparison.
+    """
+    body = request.get_json()
+    summaries = body.get('summaries', [])
+
+    if len(summaries) < 2:
+        return jsonify({'error': 'At least 2 summaries are required'}), 400
+
+    try:
+        # Fetch creation dates from Supabase to ensure correct ordering and ownership
+        ids = [s['id'] for s in summaries]
+        db_rows = (
+            supabase.table('summaries')
+            .select("summary_id, created_at, summary_text")
+            .in_('summary_id', ids)
+            .eq('user_id', current_user)
+            .execute()
+        )
+
+        if not db_rows.data or len(db_rows.data) < 2:
+            return jsonify({'error': 'Could not verify ownership of summaries'}), 403
+
+        # Sort by created_at ascending so index 0 = oldest
+        sorted_rows = sorted(db_rows.data, key=lambda r: r['created_at'])
+
+        older_text = sorted_rows[0]['summary_text']
+        newer_text = sorted_rows[-1]['summary_text']
+
+        result = diagnostic_system.generate_comparison(older_text, newer_text)
+
+        if 'error' in result:
+            return jsonify(result), 500
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"Compare Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 # --- AI ROUTES ---
 
 @app.route('/analyze', methods=['POST'])
